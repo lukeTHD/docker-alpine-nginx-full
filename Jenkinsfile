@@ -7,7 +7,6 @@ pipeline {
 	environment {
 		IMAGE        = 'alpine-nginx-full'
 		BUILDX_NAME  = "${IMAGE}_${GIT_BRANCH}"
-		BRANCH_LOWER = "${BRANCH_NAME.toLowerCase().replaceAll('/', '-')}"
 		// Software versions; OpenResty does not support Lua >= 5.2
 		OPENRESTY_VERSION = '1.19.3.1'
 		LUA_VERSION       = '5.1.5'
@@ -25,21 +24,6 @@ pipeline {
 							env.BASE_TAG                = 'latest'
 							env.BUILDX_PUSH_TAGS        = "-t docker.io/techizvn/${IMAGE}:${BASE_TAG}"
 							env.BUILDX_PUSH_TAGS_NODE   = "-t docker.io/techizvn/${IMAGE}:node"
-						}
-					}
-				}
-				stage('Other') {
-					when {
-						not {
-							branch 'master'
-						}
-					}
-					steps {
-						script {
-							// Defaults to the Branch name, which is applies to all branches AND pr's
-							env.BASE_TAG                = "github-${BRANCH_LOWER}"
-							env.BUILDX_PUSH_TAGS        = "-t docker.io/techizvn/${IMAGE}:${BASE_TAG}"
-							env.BUILDX_PUSH_TAGS_NODE   = "${BUILDX_PUSH_TAGS}-node"
 						}
 					}
 				}
