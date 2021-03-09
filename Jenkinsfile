@@ -16,9 +16,11 @@ pipeline {
 	stages {
 		stage('Build') {
 			steps {
-				sh "./scripts/buildx --push -t docker.io/techizvn/${IMAGE}:latest"
+				sh "docker build --platform linux/amd64,linux/arm64,linux/arm/7 --progress plain -t docker.io/techizvn/${IMAGE}:latest --build-arg ${OPENRESTY_VERSION} --build-arg ${LUA_VERSION} --build-arg ${LUAROCKS_VERSION} ."
 				sh 'sed -i "s/BASE_TAG/${BASE_TAG}/g" Dockerfile.node'
-				sh "./scripts/buildx --push -f Dockerfile.node -t docker.io/techizvn/${IMAGE}:node"
+				sh "docker build --platform linux/amd64,linux/arm64,linux/arm/7 --progress plain -t docker.io/techizvn/${IMAGE}:node -f Dockerfile.node --build-arg ${OPENRESTY_VERSION} --build-arg ${LUA_VERSION} --build-arg ${LUAROCKS_VERSION} ."
+				sh "docker push docker.io/techizvn/${IMAGE}:latest"
+				sh "docker push docker.io/techizvn/${IMAGE}:node"
 			}
 		}
 	}
