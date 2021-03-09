@@ -1,7 +1,4 @@
 pipeline {
-	agent {
-		label 'docker-multiarch-big'
-	}
 	options {
 		buildDiscarder(logRotator(numToKeepStr: '5'))
 		disableConcurrentBuilds()
@@ -27,7 +24,6 @@ pipeline {
 							env.BASE_TAG                = 'latest'
 							env.BUILDX_PUSH_TAGS        = "-t docker.io/techizvn/${IMAGE}:${BASE_TAG}"
 							env.BUILDX_PUSH_TAGS_NODE   = "-t docker.io/techizvn/${IMAGE}:node"
-							env.BUILDX_PUSH_TAGS_GOLANG = "-t docker.io/techizvn/${IMAGE}:golang"
 						}
 					}
 				}
@@ -43,7 +39,6 @@ pipeline {
 							env.BASE_TAG                = "github-${BRANCH_LOWER}"
 							env.BUILDX_PUSH_TAGS        = "-t docker.io/techizvn/${IMAGE}:${BASE_TAG}"
 							env.BUILDX_PUSH_TAGS_NODE   = "${BUILDX_PUSH_TAGS}-node"
-							env.BUILDX_PUSH_TAGS_GOLANG = "${BUILDX_PUSH_TAGS}-golang"
 						}
 					}
 				}
@@ -59,15 +54,6 @@ pipeline {
 		}
 		stage('Other Builds') {
 			parallel {
-				stage('Golang') {
-					environment {
-						BUILDX_NAME  = "${IMAGE}_${GIT_BRANCH}_golang"
-					}
-					steps {
-						sh 'sed -i "s/BASE_TAG/${BASE_TAG}/g" Dockerfile.golang'
-						sh "./scripts/buildx --push -f Dockerfile.golang ${BUILDX_PUSH_TAGS_GOLANG}"
-					}
-				}
 				stage('Node') {
 					environment {
 						BUILDX_NAME  = "${IMAGE}_${GIT_BRANCH}_node"
@@ -78,40 +64,6 @@ pipeline {
 					}
 				}
 			}
-		}
-		stage('PR Comment') {
-			when {
-				allOf {
-					changeRequest()
-					not {
-						equals expected: 'UNSTABLE', actual: currentBuild.result
-					}
-				}
-			}
-			steps {
-				script {
-					def comment = pullRequest.comment("""Docker Image for build ${BUILD_NUMBER} is available on [DockerHub](https://cloud.docker.com/repository/docker/techizvn/${IMAGE}) as:
-
-- `techizvn/${IMAGE}:github-${BRANCH_LOWER}`
-- `techizvn/${IMAGE}:github-${BRANCH_LOWER}-node`
-- `techizvn/${IMAGE}:github-${BRANCH_LOWER}-golang`
-""")
-				}
-			}
-		}
-	}
-	post {
-		success {
-			juxtapose event: 'success'
-			sh 'figlet "SUCCESS"'
-		}
-		failure {
-			juxtapose event: 'failure'
-			sh 'figlet "FAILURE"'
-		}
-		unstable {
-			juxtapose event: 'unstable'
-			sh 'figlet "UNSTABLE"'
 		}
 	}
 }
