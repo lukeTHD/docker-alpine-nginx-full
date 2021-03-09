@@ -5,7 +5,6 @@ pipeline {
 	options {
 		buildDiscarder(logRotator(numToKeepStr: '5'))
 		disableConcurrentBuilds()
-		ansiColor('xterm')
 	}
 	environment {
 		IMAGE        = 'alpine-nginx-full'
