@@ -65,6 +65,9 @@ ADD ./scripts/install-lua /tmp/install-lua
 COPY --from=builder /tmp/openresty /tmp/openresty
 ADD ./scripts/install-openresty /tmp/install-openresty
 
+# Copy GeoIP data
+ADD ./scripts/geoIP /etc/nginx/geoIP
+
 # Copy golang built packages
 COPY --from=go /bin/mkcert /bin/mkcert
 COPY --from=go /go/bin/dbmate /bin/dbmate
